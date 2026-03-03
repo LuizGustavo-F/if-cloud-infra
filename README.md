@@ -1,7 +1,10 @@
 # ☁️ IF Cloud - Infraestrutura como Código
 
-##  Sobre o Projeto
-O IF Cloud é uma plataforma provedora de serviços em nuvem privada, desenvolvida como projeto de extensão. O objetivo é fornecer infraestrutura robusta, gratuita e replicável (sandbox) para alunos e pesquisadores do Instituto, eliminando os altos custos e riscos associados a nuvens públicas (AWS, GCP).
+## 🌥 Visão de Produto – IF Cloud
+
+Para alunos de pós-graduação e pesquisadores do Instituto Federal que necessitam de infraestrutura computacional robusta, escalável e reprodutível para execução de experimentos acadêmicos, mas enfrentam limitações orçamentárias e barreiras financeiras associadas à nuvem pública, o IF Cloud é uma plataforma de nuvem acadêmica institucional que permite provisionar servidores e laboratórios virtuais sob demanda, de forma gratuita, segura e controlada, promovendo autonomia tecnológica e fortalecimento da pesquisa aplicada.
+
+Diferente de provedores comerciais como AWS e GCP, que operam com cobrança em moeda estrangeira e risco financeiro para estudantes, nosso produto reutiliza a infraestrutura local da instituição para oferecer um ambiente sandbox estável, sustentável e acessível, eliminando barreiras econômicas e incentivando a democratização do acesso à computação em nuvem.
 
 ## Objetivos
 * Reaproveitamento de hardware local (Bare Metal).
