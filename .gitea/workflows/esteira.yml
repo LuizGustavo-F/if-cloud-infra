@@ -1,0 +1,48 @@
+name: Nuvem-IF CI/CD
+
+on:
+  push:
+    branches: ["main"]
+    paths: ["terraform/servidores.auto.tfvars", ".gitea/workflows/**"]
+
+jobs:
+  construir-infra:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Baixar o código do repositorio
+        uses: actions/checkout@v3
+
+      - name: 2. Preparar a Chave do Cofre
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > chave-producao.pem
+          chmod 600 chave-producao.pem
+          
+      - name: 3. Instalar Ferramentas (Terraform e Ansible)
+        run: |
+          yum update -y
+          yum install -y epel-release || true
+          yum install -y ansible wget unzip
+          wget https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_amd64.zip
+          unzip -o terraform_1.5.7_linux_amd64.zip -d /tmp/
+          mv -f /tmp/terraform /usr/bin/
+          
+      - name: 4. Iniciar Terraform (Cérebro Local)
+        working-directory: ./terraform
+        run: |
+          rm -rf .terraform/
+          rm -f .terraform.lock.hcl
+          terraform init
+          
+      - name: 5. Construir Servidor
+        working-directory: ./terraform
+        env:
+          ANSIBLE_PRIVATE_KEY_FILE: ../chave-producao.pem
+          ANSIBLE_HOST_KEY_CHECKING: False
+          OS_AUTH_URL: ${{ secrets.OS_AUTH_URL }}
+          OS_USERNAME: ${{ secrets.OS_USERNAME }}
+          OS_PASSWORD: ${{ secrets.OS_PASSWORD }}
+          OS_PROJECT_NAME: ${{ secrets.OS_PROJECT_NAME }}
+          OS_USER_DOMAIN_NAME: "Default"
+          OS_PROJECT_DOMAIN_NAME: "Default"
+        run: |
+          terraform apply -auto-approve

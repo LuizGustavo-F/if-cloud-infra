@@ -1,0 +1,102 @@
+---
+- name: Configurar Docker e Zabbix Agent na VM
+  hosts: app_servers
+  become: yes  # Executa como sudo na VM de destino
+
+  tasks:
+    - name: Atualizar o cache do apt
+      apt:
+        update_cache: yes
+
+    - name: Instalar dependencias do Docker
+      apt:
+        name: 
+          - ca-certificates
+          - curl
+        state: present
+
+    # instalação do docker
+    - name: Instalar Docker Engine
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Garantir que o Docker esta rodando
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    # instalação do zabbix
+    - name: Baixar repositorio do Zabbix para Ubuntu 24.04
+      get_url:
+        url: https://repo.zabbix.com/zabbix/7.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_latest_7.0+ubuntu24.04_all.deb
+        dest: /tmp/zabbix.deb
+
+    - name: Instalar o pacote do repositorio
+      apt:
+        deb: /tmp/zabbix.deb
+
+    - name: Instalar Zabbix Agent
+      apt:
+        name: zabbix-agent
+        update_cache: yes
+        state: present
+
+    - name: Configurar o IP do Zabbix Server no Agente
+      lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+      loop:
+        - { key: 'Server', value: '10.1.140.70' }
+        - { key: 'ServerActive', value: '10.1.140.70' }
+        - { key: 'Hostname', value: '{{ inventory_hostname }}' }
+
+    - name: Garantir que o Zabbix Agent esta rodando com a nova config
+      service:
+        name: zabbix-agent
+        state: restarted
+        enabled: yes
+
+    # comunica portal
+    - name: Enviar IP e status de sucesso para o Portal IF Cloud
+      uri:
+        url: "http://172.16.16.106:8000/api/webhook/"
+        method: POST
+        body_format: form-urlencoded
+        body:
+          nome: "{{ inventory_hostname }}"
+          ip: "{{ ansible_host | default(ansible_default_ipv4.address) }}"
+
+   # cadastro da VM no zabbix
+    - name: Guardar o IP real da VM na memoria antes de chamar a API
+      set_fact:
+        ip_real_da_vm: "{{ ansible_host | default(ansible_default_ipv4.address) }}"
+
+    - name: Registrar a nova maquina no monitoramento
+      community.zabbix.zabbix_host:
+        host_name: "{{ inventory_hostname }}"
+        visible_name: "VM - {{ inventory_hostname }}"
+        host_groups:
+          - "Linux servers" 
+        link_templates:
+          - "Linux by Zabbix agent" 
+        status: enabled
+        interfaces:
+          - type: 1
+            main: 1
+            useip: 1
+            ip: "{{ ip_real_da_vm }}"  
+            dns: ""
+            port: "10050"
+      delegate_to: localhost
+      vars:
+        ansible_connection: httpapi
+        ansible_network_os: community.zabbix.zabbix
+        ansible_host: "10.1.140.70"
+        ansible_httpapi_port: 80
+        ansible_httpapi_use_ssl: false
+        ansible_user: "luiz.carvalho"
+        ansible_password: "Viol@o2024"
+        ansible_zabbix_url_path: ""
