@@ -1,6 +1,6 @@
 # Documentação de Infraestrutura - IF Cloud (Arquitetura GitOps)
 
-Este repositório atua como a única fonte da verdade (Infrastructure as Code - IaC) para o provisionamento, configuração e automação da nuvem privada acadêmica do IFMT (Campus Cuiabá). 
+Este repositório atua como a única fonte para o provisionamento, configuração e automação da nuvem privada acadêmica do IFMT (Campus Cuiabá). 
 
 A arquitetura evoluiu de um modelo de gerenciamento manual em um servidor único para um paradigma **GitOps** descentralizado e totalmente automatizado, operando sobre uma topologia robusta de múltiplos nós, oferecendo recursos de autoatendimento (Self-Service) para os alunos e pesquisadores do CTI.
 
